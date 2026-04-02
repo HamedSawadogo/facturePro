@@ -170,6 +170,7 @@ public class Invoice extends AuditEntity {
         }
     }
 
+
     public void cancel() {
         if (status == InvoiceStatus.PAID) {
             throw new BusinessRuleViolationException("Impossible d'annuler une facture déjà payée");
