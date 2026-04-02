@@ -1,0 +1,94 @@
+<div class="max-w-2xl mx-auto space-y-5">
+
+  <!-- Header -->
+  <div class="flex items-center gap-3">
+    <a routerLink="/clients" class="text-slate-400 hover:text-slate-600 transition-colors text-sm">← Retour</a>
+    <h2 class="text-2xl font-bold text-slate-800">
+      {{ isEdit() ? 'Modifier le client' : 'Nouveau client' }}
+    </h2>
+  </div>
+
+  <!-- Form card -->
+  <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <div class="col-span-full">
+          <label class="fp-label">Nom *</label>
+          <input type="text" formControlName="name" class="fp-input"
+                 placeholder="Entreprise Sawadogo SARL" />
+        </div>
+
+        <div>
+          <label class="fp-label">Email</label>
+          <input type="email" formControlName="email" class="fp-input"
+                 placeholder="contact@exemple.com" />
+        </div>
+
+        <div>
+          <label class="fp-label">Téléphone</label>
+          <input type="tel" formControlName="phone" class="fp-input"
+                 placeholder="+22670123456" />
+        </div>
+
+        <div class="col-span-full">
+          <label class="fp-label">Type de client *</label>
+          <select formControlName="clientType" class="fp-input">
+            <option value="INDIVIDUAL">Particulier / Freelance</option>
+            <option value="COMPANY">Entreprise / PME</option>
+            <option value="GOVERNMENT">Organisme public</option>
+          </select>
+        </div>
+
+        <div class="col-span-full">
+          <label class="fp-label">Adresse</label>
+          <input type="text" formControlName="address" class="fp-input"
+                 placeholder="01 BP 123, Secteur 10" />
+        </div>
+
+        <div>
+          <label class="fp-label">Ville</label>
+          <input type="text" formControlName="city" class="fp-input"
+                 placeholder="Ouagadougou" />
+        </div>
+
+        <div>
+          <label class="fp-label">Pays</label>
+          <input type="text" formControlName="country" class="fp-input"
+                 placeholder="Burkina Faso" />
+        </div>
+
+        <div class="col-span-full">
+          <label class="fp-label">Numéro IFU / fiscal</label>
+          <input type="text" formControlName="taxNumber" class="fp-input"
+                 placeholder="IFU-0000000" />
+        </div>
+      </div>
+
+      @if (error()) {
+        <div class="flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 px-4 py-3 rounded-lg">
+          <span>⚠</span> {{ error() }}
+        </div>
+      }
+
+      <div class="flex gap-3 pt-2">
+        <button
+          type="submit"
+          [disabled]="form.invalid || saving()"
+          class="bg-blue-700 hover:bg-blue-800 disabled:bg-blue-300 disabled:cursor-not-allowed
+                 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
+        >
+          @if (saving()) { Enregistrement... } @else { Enregistrer }
+        </button>
+        <a routerLink="/clients"
+           class="px-6 py-2.5 rounded-lg text-sm font-medium border border-slate-300
+                  hover:bg-slate-50 transition-colors text-slate-700">
+          Annuler
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+</div>

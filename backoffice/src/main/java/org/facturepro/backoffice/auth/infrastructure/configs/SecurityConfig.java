@@ -76,8 +76,8 @@ public class SecurityConfig {
         final CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Idempotency-Key"));
-        config.setExposedHeaders(List.of("Location"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Idempotency-Key", "Last-Event-ID", "Cache-Control"));
+        config.setExposedHeaders(List.of("Location", "Last-Event-ID"));
         config.setAllowCredentials(true);
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);

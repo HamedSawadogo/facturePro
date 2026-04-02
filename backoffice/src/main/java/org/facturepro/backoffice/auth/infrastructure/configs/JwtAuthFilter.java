@@ -57,6 +57,11 @@ public final class JwtAuthFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
             return header.substring(7);
         }
+        // Fallback query param pour SSE (EventSource ne supporte pas les headers)
+        final String tokenParam = request.getParameter("token");
+        if (StringUtils.hasText(tokenParam)) {
+            return tokenParam;
+        }
         return null;
     }
 }

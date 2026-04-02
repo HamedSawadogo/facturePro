@@ -18,7 +18,6 @@ import java.util.Objects;
 @Service
 @Transactional
 public class RegisterUserUseCase {
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 

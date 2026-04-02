@@ -6,12 +6,15 @@ export interface InvoiceSummary {
   invoiceNumber: string;
   type: InvoiceType;
   status: InvoiceStatus;
+  clientId: string;
   clientName: string;
   issueDate: string;
   dueDate: string;
+  totalHtAmount: number;
   totalTtcAmount: number;
   currency: string;
   amountPaidAmount: number;
+  notes?: string;
 }
 
 export interface InvoiceItemRequest {

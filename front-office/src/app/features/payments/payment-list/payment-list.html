@@ -1,0 +1,125 @@
+<div class="space-y-5 max-w-7xl mx-auto">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold text-slate-800">Paiements</h2>
+      <p class="text-slate-500 text-sm mt-0.5">Historique des paiements reçus</p>
+    </div>
+    <a routerLink="new"
+       class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors">
+      + Enregistrer un paiement
+    </a>
+  </div>
+
+  <!-- Invoice selector -->
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+    <label class="block text-sm font-medium text-slate-700 mb-2">Sélectionner une facture</label>
+
+    @if (loadingInvoices()) {
+      <div class="text-sm text-slate-400">Chargement des factures...</div>
+    } @else {
+      <select
+        [(ngModel)]="selectedInvoiceId"
+        (ngModelChange)="onInvoiceSelect($event)"
+        class="w-full max-w-lg px-3 py-2.5 rounded-lg border border-slate-300 text-sm
+               focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+      >
+        <option value="">-- Choisir une facture --</option>
+        @for (inv of invoices(); track inv.id) {
+          <option [value]="inv.id">
+            {{ inv.invoiceNumber }} · {{ inv.clientName }} · {{ inv.totalTtcAmount | number:'1.0-0' }} {{ inv.currency }}
+          </option>
+        }
+      </select>
+
+      <!-- Selected invoice recap -->
+      @if (selectedInvoice()) {
+        <div class="mt-3 flex flex-wrap items-center gap-3 text-sm">
+          <span class="font-mono font-semibold text-blue-700">{{ selectedInvoice()!.invoiceNumber }}</span>
+          <span class="text-slate-500">{{ selectedInvoice()!.clientName }}</span>
+          <span [class]="'inline-flex px-2 py-0.5 rounded-full text-xs font-medium ' + statusColorInv(selectedInvoice()!.status)">
+            {{ statusLabelInv(selectedInvoice()!.status) }}
+          </span>
+          <span class="text-slate-700 font-semibold ml-auto">
+            TTC : {{ selectedInvoice()!.totalTtcAmount | number:'1.0-0' }} {{ selectedInvoice()!.currency }}
+          </span>
+          @if (selectedInvoice()!.amountPaidAmount > 0) {
+            <span class="text-green-600 font-medium text-xs">
+              Payé : {{ selectedInvoice()!.amountPaidAmount | number:'1.0-0' }}
+            </span>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Payments table -->
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+
+    @if (!selectedInvoiceId) {
+      <div class="p-12 text-center">
+        <p class="text-4xl mb-3">💳</p>
+        <p class="text-slate-500 text-sm">Sélectionnez une facture pour voir ses paiements.</p>
+      </div>
+    } @else if (loading()) {
+      <div class="p-10 text-center">
+        <div class="inline-block h-6 w-6 rounded-full border-2 border-blue-600 border-t-transparent animate-spin"></div>
+        <p class="text-slate-400 text-sm mt-2">Chargement...</p>
+      </div>
+    } @else if (payments().length === 0) {
+      <div class="p-12 text-center">
+        <p class="text-4xl mb-3">💸</p>
+        <p class="text-slate-500 text-sm">Aucun paiement enregistré pour cette facture.</p>
+        <a routerLink="new" class="inline-block mt-3 text-sm text-blue-600 hover:underline">
+          Enregistrer le premier paiement →
+        </a>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
+              <th class="text-left px-6 py-3 font-semibold">Date</th>
+              <th class="text-left px-4 py-3 font-semibold">Méthode</th>
+              <th class="text-right px-4 py-3 font-semibold">Montant</th>
+              <th class="text-left px-4 py-3 font-semibold hidden md:table-cell">Référence</th>
+              <th class="text-center px-4 py-3 font-semibold">Statut</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @for (p of payments(); track p.id) {
+              <tr class="hover:bg-slate-50/70 transition-colors">
+                <td class="px-6 py-3.5 text-slate-700 text-xs font-medium">{{ p.paymentDate }}</td>
+                <td class="px-4 py-3.5">
+                  <span class="inline-flex items-center gap-1.5">
+                    <span>{{ methodIcon(p.method) }}</span>
+                    <span class="text-xs font-medium text-slate-700">{{ methodLabel(p.method) }}</span>
+                  </span>
+                </td>
+                <td class="px-4 py-3.5 text-right">
+                  <span class="font-semibold text-slate-800">{{ p.amount | number:'1.0-0' }}</span>
+                  <span class="text-slate-400 text-xs ml-1">{{ p.currency }}</span>
+                </td>
+                <td class="px-4 py-3.5 text-slate-500 text-xs hidden md:table-cell">{{ p.reference ?? '—' }}</td>
+                <td class="px-4 py-3.5 text-center">
+                  <span [class]="'inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ' + statusColor(p.status)">
+                    {{ statusLabel(p.status) }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-6 text-sm">
+        <span class="text-slate-500">{{ payments().length }} paiement(s)</span>
+        <span>Total confirmé :
+          <span class="font-bold text-green-700 ml-1">{{ confirmedTotal() | number:'1.0-0' }} XOF</span>
+        </span>
+      </div>
+    }
+  </div>
+
+</div>

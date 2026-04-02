@@ -1,0 +1,100 @@
+<div class="space-y-5 max-w-7xl mx-auto">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold text-slate-800">Clients</h2>
+      <p class="text-slate-500 text-sm mt-0.5">{{ total() }} client(s) enregistré(s)</p>
+    </div>
+    <a routerLink="new"
+       class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors">
+      + Nouveau client
+    </a>
+  </div>
+
+  <!-- Search -->
+  <div class="relative">
+    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="onSearch($event)"
+      placeholder="Rechercher par nom ou email..."
+      class="w-full max-w-md pl-10 pr-4 py-2.5 rounded-lg border border-slate-300
+             focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white shadow-sm"
+    />
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+
+    @if (loading()) {
+      <div class="p-10 text-center">
+        <div class="inline-block h-6 w-6 rounded-full border-2 border-blue-600 border-t-transparent animate-spin"></div>
+        <p class="text-slate-400 text-sm mt-2">Chargement...</p>
+      </div>
+    } @else if (clients().length === 0) {
+      <div class="p-12 text-center">
+        <p class="text-4xl mb-3">👥</p>
+        <p class="text-slate-500 text-sm">Aucun client trouvé.</p>
+        <a routerLink="new" class="inline-block mt-3 text-sm text-blue-600 hover:underline">Créer le premier →</a>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
+              <th class="text-left px-6 py-3 font-semibold">Nom</th>
+              <th class="text-left px-4 py-3 font-semibold hidden sm:table-cell">Email</th>
+              <th class="text-left px-4 py-3 font-semibold hidden md:table-cell">Téléphone</th>
+              <th class="text-left px-4 py-3 font-semibold hidden lg:table-cell">Ville</th>
+              <th class="text-left px-4 py-3 font-semibold">Type</th>
+              <th class="px-6 py-3"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @for (client of clients(); track client.id) {
+              <tr class="hover:bg-slate-50/70 transition-colors">
+                <td class="px-6 py-3.5 font-medium text-slate-800">{{ client.name }}</td>
+                <td class="px-4 py-3.5 text-slate-600 hidden sm:table-cell">{{ client.email ?? '—' }}</td>
+                <td class="px-4 py-3.5 text-slate-600 hidden md:table-cell">{{ client.phone ?? '—' }}</td>
+                <td class="px-4 py-3.5 text-slate-600 hidden lg:table-cell">{{ client.city ?? '—' }}</td>
+                <td class="px-4 py-3.5">
+                  <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                    {{ typeLabel(client.clientType) }}
+                  </span>
+                </td>
+                <td class="px-6 py-3.5 text-right">
+                  <a [routerLink]="[client.id, 'edit']"
+                     class="text-blue-600 hover:text-blue-800 text-xs font-medium transition-colors">Modifier →</a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="px-6 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <p class="text-xs text-slate-500">Page {{ currentPage() + 1 }} / {{ totalPages() }}</p>
+          <div class="flex gap-2">
+            <button
+              [disabled]="currentPage() === 0"
+              (click)="loadPage(currentPage() - 1)"
+              class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg disabled:opacity-40
+                     hover:bg-white disabled:cursor-not-allowed transition-colors"
+            >← Préc.</button>
+            <button
+              [disabled]="currentPage() === totalPages() - 1"
+              (click)="loadPage(currentPage() + 1)"
+              class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg disabled:opacity-40
+                     hover:bg-white disabled:cursor-not-allowed transition-colors"
+            >Suiv. →</button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+</div>

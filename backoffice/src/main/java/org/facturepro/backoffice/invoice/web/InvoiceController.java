@@ -1,6 +1,7 @@
 package org.facturepro.backoffice.invoice.web;
 
 import jakarta.validation.Valid;
+import org.facturepro.backoffice.invoice.application.commands.ConvertQuoteUseCase;
 import org.facturepro.backoffice.invoice.application.commands.CreateInvoiceCommand;
 import org.facturepro.backoffice.invoice.application.commands.CreateInvoiceUseCase;
 import org.facturepro.backoffice.invoice.application.commands.SendInvoiceUseCase;
@@ -26,17 +27,20 @@ public class InvoiceController {
 
     private final CreateInvoiceUseCase createInvoiceUseCase;
     private final SendInvoiceUseCase sendInvoiceUseCase;
+    private final ConvertQuoteUseCase convertQuoteUseCase;
     private final GetInvoiceUseCase getInvoiceUseCase;
     private final ListInvoicesUseCase listInvoicesUseCase;
 
     public InvoiceController(
         final CreateInvoiceUseCase createInvoiceUseCase,
         final SendInvoiceUseCase sendInvoiceUseCase,
+        final ConvertQuoteUseCase convertQuoteUseCase,
         final GetInvoiceUseCase getInvoiceUseCase,
         final ListInvoicesUseCase listInvoicesUseCase
     ) {
         this.createInvoiceUseCase = createInvoiceUseCase;
         this.sendInvoiceUseCase = sendInvoiceUseCase;
+        this.convertQuoteUseCase = convertQuoteUseCase;
         this.getInvoiceUseCase = getInvoiceUseCase;
         this.listInvoicesUseCase = listInvoicesUseCase;
     }
@@ -65,6 +69,15 @@ public class InvoiceController {
             request.paymentTerms(),
             idempotencyKey
         ));
+    }
+
+    @PostMapping("/{id}/convert")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT')")
+    public ResourceCreatedId convertToInvoice(
+        @PathVariable final UUID id,
+        @AuthenticationPrincipal final TenantAwarePrincipal principal
+    ) {
+        return convertQuoteUseCase.execute(id, principal.tenantId());
     }
 
     @PostMapping("/{id}/send")

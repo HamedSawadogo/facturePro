@@ -1,0 +1,122 @@
+<div class="max-w-3xl mx-auto space-y-6">
+
+  <!-- Header -->
+  <div>
+    <h2 class="text-2xl font-bold text-slate-800">Paramètres</h2>
+    <p class="text-slate-500 text-sm mt-0.5">Configurez votre entreprise et vos préférences</p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
+
+    <!-- ── Identité de l'entreprise ── -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+      <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+        <span class="h-6 w-6 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">🏢</span>
+        Identité de l'entreprise
+      </h3>
+
+      <!-- Logo -->
+      <div>
+        <label class="fp-label">Logo</label>
+        <div class="flex items-center gap-4">
+          @if (logoPreview()) {
+            <img [src]="logoPreview()" alt="Logo" class="h-16 w-16 rounded-lg object-contain border border-slate-200 p-1 bg-white" />
+          } @else {
+            <div class="h-16 w-16 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 text-2xl">
+              🏢
+            </div>
+          }
+          <div>
+            <label class="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300
+                          text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+              <span>📁</span> Choisir un fichier
+              <input type="file" accept="image/*" (change)="onLogoChange($event)" class="sr-only" />
+            </label>
+            @if (logoPreview()) {
+              <button type="button" (click)="removeLogo()"
+                      class="ml-2 text-xs text-red-400 hover:text-red-600">Supprimer</button>
+            }
+            <p class="text-xs text-slate-400 mt-1">PNG, JPG · max 500 ko</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="col-span-full">
+          <label class="fp-label">Nom de l'entreprise *</label>
+          <input type="text" formControlName="companyName" class="fp-input" placeholder="SARL MonEntreprise" />
+        </div>
+        <div class="col-span-full">
+          <label class="fp-label">Adresse</label>
+          <input type="text" formControlName="address" class="fp-input" placeholder="01 BP 123, Ouagadougou" />
+        </div>
+        <div>
+          <label class="fp-label">Téléphone</label>
+          <input type="tel" formControlName="phone" class="fp-input" placeholder="+22670000000" />
+        </div>
+        <div>
+          <label class="fp-label">Email</label>
+          <input type="email" formControlName="email" class="fp-input" placeholder="contact@entreprise.com" />
+        </div>
+        <div class="col-span-full">
+          <label class="fp-label">Numéro IFU / fiscal</label>
+          <input type="text" formControlName="taxNumber" class="fp-input" placeholder="IFU-0000000" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Localisation & Devise ── -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+      <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+        <span class="h-6 w-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">🌍</span>
+        Localisation &amp; Devise
+      </h3>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="fp-label">Pays</label>
+          <select formControlName="country" class="fp-input">
+            @for (c of countries; track c.value) {
+              <option [value]="c.value">{{ c.flag }} {{ c.label }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="fp-label">Devise</label>
+          <select formControlName="currency" class="fp-input">
+            @for (c of currencies; track c.value) {
+              <option [value]="c.value">{{ c.label }} ({{ c.value }})</option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Factures ── -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+      <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+        <span class="h-6 w-6 rounded-md bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold">📄</span>
+        Factures
+      </h3>
+      <div>
+        <label class="fp-label">Pied de page des factures</label>
+        <textarea formControlName="invoiceFooter" rows="2" class="fp-input resize-none"
+                  placeholder="Merci pour votre confiance. Paiement sous 30 jours."></textarea>
+      </div>
+    </div>
+
+    @if (saved()) {
+      <div class="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 px-4 py-3 rounded-lg">
+        ✓ Paramètres enregistrés avec succès
+      </div>
+    }
+
+    <div class="flex gap-3">
+      <button type="submit"
+              class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transition-colors">
+        Enregistrer
+      </button>
+    </div>
+
+  </form>
+</div>

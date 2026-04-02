@@ -28,9 +28,11 @@ public class GetInvoiceUseCase {
             i.getInvoiceNumber().getValue(),
             i.getType(),
             i.getStatus(),
+            i.getClientId(),
             i.getClientName(),
             i.getIssueDate(),
             i.getDueDate(),
+            i.getTotalHt().getAmount(),
             i.getTotalTtc().getAmount(),
             i.getTotalTtc().getCurrency(),
             i.getAmountPaid().getAmount()

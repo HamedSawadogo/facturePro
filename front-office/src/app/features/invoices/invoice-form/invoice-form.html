@@ -1,0 +1,157 @@
+<div class="max-w-3xl mx-auto space-y-5">
+
+  <div class="flex items-center gap-3">
+    <a routerLink="/invoices" class="text-slate-400 hover:text-slate-600 transition-colors text-sm">← Retour</a>
+    <h2 class="text-2xl font-bold text-slate-800">Nouvelle facture</h2>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
+
+    <!-- Infos générales -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
+      <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+        <span class="h-6 w-6 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">1</span>
+        Informations générales
+      </h3>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="fp-label">Type *</label>
+          <select formControlName="type" class="fp-input">
+            <option value="INVOICE">Facture</option>
+            <option value="QUOTE">Devis</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="fp-label">Client *</label>
+          <select class="fp-input" (change)="onClientChange($event)">
+            <option value="">-- Sélectionner un client --</option>
+            @for (c of clients(); track c.id) {
+              <option [value]="c.id">{{ c.name }}</option>
+            }
+          </select>
+          @if (form.get('clientId')?.touched && form.get('clientId')?.value === '') {
+            <p class="text-xs text-red-500 mt-1">Veuillez sélectionner un client</p>
+          }
+        </div>
+
+        <div>
+          <label class="fp-label">Date d'émission *</label>
+          <input type="date" formControlName="issueDate" class="fp-input" />
+        </div>
+
+        <div>
+          <label class="fp-label">Date d'échéance *</label>
+          <input type="date" formControlName="dueDate" class="fp-input" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Lignes de facturation -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+          <span class="h-6 w-6 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">2</span>
+          Lignes de facturation
+        </h3>
+        <button type="button" (click)="addItem()"
+                class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
+          + Ajouter une ligne
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <div formArrayName="items" class="space-y-2 min-w-[500px]">
+
+          <!-- Header labels (shown once) -->
+          <div class="grid grid-cols-12 gap-2 px-1">
+            <div class="col-span-5 text-xs text-slate-500 font-medium">Description</div>
+            <div class="col-span-2 text-xs text-slate-500 font-medium text-right">Quantité</div>
+            <div class="col-span-3 text-xs text-slate-500 font-medium text-right">P.U. (XOF)</div>
+            <div class="col-span-1 text-xs text-slate-500 font-medium text-right">TVA%</div>
+            <div class="col-span-1"></div>
+          </div>
+
+          @for (item of items.controls; track $index; let i = $index) {
+            <div [formGroupName]="i" class="grid grid-cols-12 gap-2 items-center">
+              <div class="col-span-5">
+                <input type="text" formControlName="description" class="fp-input"
+                       placeholder="Prestation de service" />
+              </div>
+              <div class="col-span-2">
+                <input type="number" formControlName="quantity" class="fp-input text-right"
+                       placeholder="1" min="0.01" step="0.01" />
+              </div>
+              <div class="col-span-3">
+                <input type="number" formControlName="unitPriceAmount" class="fp-input text-right"
+                       placeholder="50000" min="0" />
+              </div>
+              <div class="col-span-1">
+                <input type="number" formControlName="taxRate" class="fp-input text-right"
+                       placeholder="0" min="0" max="100" />
+              </div>
+              <div class="col-span-1 flex items-center justify-center">
+                @if (items.length > 1) {
+                  <button type="button" (click)="removeItem(i)"
+                          class="h-7 w-7 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center text-sm transition-colors">
+                    ✕
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="border-t border-slate-100 pt-4 flex justify-end">
+        <div class="bg-slate-50 rounded-lg p-4 text-right space-y-1.5 min-w-[200px]">
+          <div class="flex justify-between gap-8 text-sm text-slate-600">
+            <span>Total HT</span>
+            <span class="font-medium">{{ totalHt() | number:'1.0-0' }} XOF</span>
+          </div>
+          <div class="flex justify-between gap-8 text-xs text-slate-500">
+            <span>TVA</span>
+            <span>{{ (totalTtc() - totalHt()) | number:'1.0-0' }} XOF</span>
+          </div>
+          <div class="flex justify-between gap-8 text-base font-bold text-slate-800 border-t border-slate-200 pt-1.5">
+            <span>Total TTC</span>
+            <span>{{ totalTtc() | number:'1.0-0' }} XOF</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <h3 class="font-semibold text-slate-800 flex items-center gap-2 mb-3">
+        <span class="h-6 w-6 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">3</span>
+        Notes &amp; conditions
+      </h3>
+      <label class="fp-label">Notes / Conditions de paiement</label>
+      <textarea formControlName="notes" rows="3" class="fp-input resize-none"
+                placeholder="Paiement à 30 jours..."></textarea>
+    </div>
+
+    @if (error()) {
+      <div class="flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 px-4 py-3 rounded-lg">
+        <span>⚠</span> {{ error() }}
+      </div>
+    }
+
+    <div class="flex gap-3">
+      <button type="submit" [disabled]="form.invalid || saving()"
+              class="bg-blue-700 hover:bg-blue-800 disabled:bg-blue-300 disabled:cursor-not-allowed
+                     text-white px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transition-colors">
+        @if (saving()) { Enregistrement... } @else { Créer la facture }
+      </button>
+      <a routerLink="/invoices"
+         class="px-6 py-2.5 rounded-lg text-sm font-medium border border-slate-300
+                hover:bg-slate-50 transition-colors text-slate-700">
+        Annuler
+      </a>
+    </div>
+
+  </form>
+</div>

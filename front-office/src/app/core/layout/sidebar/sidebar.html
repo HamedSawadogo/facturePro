@@ -1,0 +1,69 @@
+<aside class="w-64 h-full bg-gradient-to-b from-blue-950 to-blue-900 text-white flex flex-col flex-shrink-0 shadow-xl">
+
+  <!-- Logo -->
+  <div class="px-6 py-5 border-b border-blue-800/60">
+    <div class="flex items-center gap-2.5">
+      <div class="h-8 w-8 rounded-lg bg-amber-400 flex items-center justify-center">
+        <span class="text-blue-950 font-black text-sm">FP</span>
+      </div>
+      <div>
+        <h1 class="text-base font-bold tracking-tight leading-none">
+          <span class="text-amber-400">Facture</span>Pro
+        </h1>
+        <p class="text-[10px] text-blue-400 mt-0.5">Africa</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 px-3 py-4 overflow-y-auto flex flex-col">
+    <div class="space-y-0.5 flex-1">
+      @for (item of mainNavItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="bg-blue-800/80 text-white shadow-sm"
+          [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-blue-300
+                 hover:bg-blue-800/60 hover:text-white text-sm font-medium transition-colors"
+        >
+          <span class="w-5 text-center text-base">{{ item.icon }}</span>
+          {{ item.label }}
+        </a>
+      }
+    </div>
+
+    <!-- Séparateur + Paramètres en bas -->
+    <div class="mt-auto pt-3 border-t border-blue-800/40 space-y-0.5">
+      @for (item of bottomNavItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="bg-blue-800/80 text-white shadow-sm"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-blue-300
+                 hover:bg-blue-800/60 hover:text-white text-sm font-medium transition-colors"
+        >
+          <span class="w-5 text-center text-base">{{ item.icon }}</span>
+          {{ item.label }}
+        </a>
+      }
+    </div>
+  </nav>
+
+  <!-- User info -->
+  <div class="px-4 py-4 border-t border-blue-800/60">
+    <div class="flex items-center gap-3 mb-2">
+      <div class="h-8 w-8 rounded-full bg-blue-700 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+        {{ initial }}
+      </div>
+      <div class="min-w-0">
+        <p class="text-sm font-medium text-white truncate">{{ auth.currentUser()?.fullName }}</p>
+        <p class="text-xs text-blue-400 truncate">{{ auth.currentUser()?.email }}</p>
+      </div>
+    </div>
+    <button
+      (click)="auth.logout()"
+      class="w-full text-left text-xs text-blue-400 hover:text-white transition-colors py-1"
+    >
+      ← Déconnexion
+    </button>
+  </div>
+</aside>

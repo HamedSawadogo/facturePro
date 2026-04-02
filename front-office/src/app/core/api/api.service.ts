@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Client, CreateClientRequest, PageResponse } from '../models/client.model';
 import { CreateInvoiceRequest, InvoiceSummary } from '../models/invoice.model';
+import { PaymentSummary, RecordPaymentRequest } from '../models/payment.model';
 
 
 @Injectable({ providedIn: 'root' })
@@ -51,5 +52,24 @@ export class ApiService {
 
   sendInvoice(id: string): Observable<{ id: string }> {
     return this.http.post<{ id: string }>(`${this.baseUrl}/invoices/${id}/send`, {});
+  }
+
+  convertInvoice(id: string): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(`${this.baseUrl}/invoices/${id}/convert`, {});
+  }
+
+  // ── Payments ─────────────────────────────────────────────────
+  getPayments(invoiceId: string, page = 0, size = 20): Observable<PageResponse<PaymentSummary>> {
+    const params = new HttpParams()
+      .set('invoiceId', invoiceId)
+      .set('page', page)
+      .set('size', size);
+    return this.http.get<PageResponse<PaymentSummary>>(`${this.baseUrl}/payments`, { params });
+  }
+
+  recordPayment(body: RecordPaymentRequest, idempotencyKey: string): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(`${this.baseUrl}/payments`, body, {
+      headers: { 'X-Idempotency-Key': idempotencyKey },
+    });
   }
 }

@@ -3,12 +3,17 @@ package org.facturepro.backoffice.payment.web;
 import jakarta.validation.Valid;
 import org.facturepro.backoffice.payment.application.commands.RecordPaymentCommand;
 import org.facturepro.backoffice.payment.application.commands.RecordPaymentUseCase;
+import org.facturepro.backoffice.payment.application.queries.ListPaymentsUseCase;
+import org.facturepro.backoffice.payment.application.queries.PaymentSummary;
 import org.facturepro.backoffice.shared.infrastructure.multitenancy.TenantAwarePrincipal;
+import org.facturepro.backoffice.shared.web.PageResponse;
 import org.facturepro.backoffice.shared.web.ResourceCreatedId;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 /**
  * Controller Paiements.
@@ -19,9 +24,14 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
 
     private final RecordPaymentUseCase recordPaymentUseCase;
+    private final ListPaymentsUseCase listPaymentsUseCase;
 
-    public PaymentController(final RecordPaymentUseCase recordPaymentUseCase) {
+    public PaymentController(
+        final RecordPaymentUseCase recordPaymentUseCase,
+        final ListPaymentsUseCase listPaymentsUseCase
+    ) {
         this.recordPaymentUseCase = recordPaymentUseCase;
+        this.listPaymentsUseCase = listPaymentsUseCase;
     }
 
     @PostMapping
@@ -43,5 +53,16 @@ public class PaymentController {
             idempotencyKey,
             request.notes()
         ));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ACCOUNTANT', 'VIEWER')")
+    public PageResponse<PaymentSummary> list(
+        @RequestParam UUID invoiceId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size,
+        @AuthenticationPrincipal final TenantAwarePrincipal principal
+    ) {
+        return listPaymentsUseCase.execute(invoiceId, principal.tenantId(), page, size);
     }
 }

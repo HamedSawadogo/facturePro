@@ -1,0 +1,81 @@
+<header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between relative z-30">
+
+  <!-- Left -->
+  <span class="text-sm font-medium text-slate-700">FacturePro Africa</span>
+
+  <!-- Right -->
+  <div class="flex items-center gap-3">
+
+    <!-- ── Notification bell + panel ── -->
+    <div class="relative">
+      <button
+        (click)="togglePanel()"
+        class="relative h-9 w-9 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors"
+      >
+        <span class="text-slate-500 text-lg">🔔</span>
+        @if (unreadCount() > 0) {
+          <span class="absolute top-1 right-1 h-4 w-4 rounded-full bg-red-500 text-white
+                       text-[9px] font-bold flex items-center justify-center">
+            {{ unreadCount() > 9 ? '9+' : unreadCount() }}
+          </span>
+        }
+      </button>
+
+      <!-- Dropdown panel -->
+      @if (panelOpen()) {
+        <div class="absolute right-0 top-11 w-80 bg-white rounded-xl border border-slate-200
+                    shadow-xl overflow-hidden z-50">
+
+          <!-- Panel header -->
+          <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+            <span class="text-sm font-semibold text-slate-800">Notifications</span>
+            @if (notifStore.notifications().length > 0) {
+              <button
+                (click)="notifStore.clearAll()"
+                class="text-xs text-slate-400 hover:text-red-500 transition-colors"
+              >Tout effacer</button>
+            }
+          </div>
+
+          <!-- List -->
+          <div class="max-h-80 overflow-y-auto divide-y divide-slate-100">
+            @if (notifStore.notifications().length === 0) {
+              <div class="px-4 py-8 text-center">
+                <p class="text-2xl mb-1">🔔</p>
+                <p class="text-sm text-slate-400">Aucune notification</p>
+              </div>
+            } @else {
+              @for (n of notifStore.notifications(); track n.id) {
+                <div class="px-4 py-3 flex items-start gap-3 hover:bg-slate-50 transition-colors">
+                  <span class="text-lg mt-0.5 flex-shrink-0">{{ typeIcon(n.type) }}</span>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm text-slate-800 leading-snug">{{ n.message }}</p>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ n.createdAt | date:'HH:mm' }}</p>
+                  </div>
+                  <button
+                    (click)="dismiss(n.id)"
+                    class="text-slate-300 hover:text-slate-500 text-xs flex-shrink-0 mt-0.5"
+                  >✕</button>
+                </div>
+              }
+            }
+          </div>
+
+        </div>
+      }
+    </div>
+
+    <!-- Role badge -->
+    <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+                 bg-blue-50 text-blue-700 border border-blue-100">
+      {{ auth.currentUser()?.role }}
+    </span>
+
+    <!-- Avatar -->
+    <div class="h-8 w-8 rounded-full bg-blue-700 text-white flex items-center justify-center
+                text-sm font-bold cursor-default select-none">
+      {{ initial }}
+    </div>
+
+  </div>
+</header>

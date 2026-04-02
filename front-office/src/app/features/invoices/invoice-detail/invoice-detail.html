@@ -1,0 +1,240 @@
+<!-- Actions bar (non-printable) -->
+<div class="max-w-4xl mx-auto print:hidden">
+
+  <!-- Send success toast -->
+  @if (sendSuccess()) {
+    <div class="mb-3 flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 px-4 py-2.5 rounded-lg">
+      <span>✅</span> Facture envoyée par email avec succès !
+    </div>
+  }
+
+  <div class="flex items-center justify-between mb-5">
+    <div class="flex items-center gap-3">
+      <a routerLink="/invoices" class="text-slate-400 hover:text-slate-600 transition-colors text-sm">← Retour</a>
+      <h2 class="text-xl font-bold text-slate-800">Détail de la facture</h2>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap justify-end">
+
+      <!-- Convert QUOTE → INVOICE -->
+      @if (invoice()?.type === 'QUOTE' && invoice()?.status === 'DRAFT') {
+        <button
+          (click)="convertToInvoice()"
+          [disabled]="converting()"
+          class="bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 disabled:cursor-not-allowed
+                 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors"
+        >
+          @if (converting()) { Conversion... } @else { 🔄 Convertir en facture }
+        </button>
+      }
+
+      <!-- Send by email (DRAFT only) -->
+      @if (invoice()?.status === 'DRAFT') {
+        <button
+          (click)="sendInvoice()"
+          [disabled]="sending()"
+          class="bg-blue-700 hover:bg-blue-800 disabled:bg-blue-300 disabled:cursor-not-allowed
+                 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors"
+        >
+          @if (sending()) { Envoi en cours... } @else { 📧 Envoyer par email }
+        </button>
+      }
+
+      <!-- WhatsApp share -->
+      @if (whatsappUrl()) {
+        <a
+          [href]="whatsappUrl()"
+          target="_blank"
+          rel="noopener"
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors"
+        >
+          💬 Envoyer WhatsApp
+        </a>
+      }
+
+      <!-- Record payment -->
+      @if (invoice()?.status === 'SENT' || invoice()?.status === 'OVERDUE' || invoice()?.status === 'PARTIALLY_PAID') {
+        <a [routerLink]="['/payments', 'new']"
+           class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors">
+          💳 Paiement
+        </a>
+      }
+
+      <!-- Copy link -->
+      <button
+        (click)="copyLink()"
+        class="border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+      >
+        {{ copied() ? '✅ Copié !' : '🔗 Copier lien' }}
+      </button>
+
+      <!-- Print / PDF -->
+      <button
+        (click)="print()"
+        class="border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+      >
+        🖨️ PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PDF Document -->
+@if (loading()) {
+  <div class="max-w-4xl mx-auto p-16 text-center print:hidden">
+    <div class="inline-block h-8 w-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin"></div>
+    <p class="text-slate-400 text-sm mt-3">Chargement de la facture...</p>
+  </div>
+} @else if (invoice()) {
+  <div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm print:shadow-none print:border-none invoice-document">
+
+      <!-- ═══ DOCUMENT HEADER ═══ -->
+      <div class="p-8 border-b border-slate-100">
+        <div class="flex items-start justify-between">
+
+          <!-- Company branding -->
+          <div>
+            <div class="flex items-center gap-3 mb-2">
+              <div class="h-10 w-10 rounded-xl bg-blue-900 flex items-center justify-center">
+                <span class="text-amber-400 font-black text-sm">FP</span>
+              </div>
+              <div>
+                <h1 class="text-lg font-bold text-blue-900">FacturePro Africa</h1>
+                <p class="text-xs text-slate-500">Gestion financière simplifiée</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Invoice type + number + status -->
+          <div class="text-right">
+            <p class="text-3xl font-black text-slate-800 uppercase tracking-wide">
+              {{ typeLabel(invoice()!.type) }}
+            </p>
+            <p class="font-mono text-sm font-semibold text-blue-700 mt-1">{{ invoice()!.invoiceNumber }}</p>
+            <span [class]="'inline-flex mt-2 px-3 py-0.5 rounded-full text-xs font-semibold ' + statusColor(invoice()!.status)">
+              {{ statusLabel(invoice()!.status) }}
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ═══ META (DATES + CLIENT) ═══ -->
+      <div class="p-8 grid grid-cols-2 gap-8 border-b border-slate-100">
+
+        <!-- Client block -->
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Facturé à</p>
+          <p class="text-base font-bold text-slate-800">{{ invoice()!.clientName }}</p>
+          @if (client()?.phone) {
+            <p class="text-sm text-slate-500 mt-0.5">📞 {{ client()!.phone }}</p>
+          }
+          @if (client()?.email) {
+            <p class="text-sm text-slate-500 mt-0.5">✉️ {{ client()!.email }}</p>
+          }
+          @if (client()?.city) {
+            <p class="text-sm text-slate-400 mt-0.5">📍 {{ client()!.city }}{{ client()!.country ? ', ' + client()!.country : '' }}</p>
+          }
+        </div>
+
+        <!-- Dates block -->
+        <div class="text-right">
+          <div class="inline-block text-left">
+            <div class="flex justify-between gap-8 mb-1">
+              <span class="text-xs text-slate-400 font-medium uppercase tracking-wide">Date d'émission</span>
+              <span class="text-sm font-semibold text-slate-700">{{ invoice()!.issueDate }}</span>
+            </div>
+            <div class="flex justify-between gap-8">
+              <span class="text-xs text-slate-400 font-medium uppercase tracking-wide">Date d'échéance</span>
+              <span class="text-sm font-semibold"
+                    [class.text-red-600]="invoice()!.status === 'OVERDUE'"
+                    [class.text-slate-700]="invoice()!.status !== 'OVERDUE'">
+                {{ invoice()!.dueDate }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ITEMS TABLE ═══ -->
+      <div class="p-8">
+        <table class="w-full text-sm mb-6">
+          <thead>
+            <tr class="border-b-2 border-slate-800">
+              <th class="text-left pb-2 font-bold text-slate-700 text-xs uppercase tracking-wide">Description</th>
+              <th class="text-right pb-2 font-bold text-slate-700 text-xs uppercase tracking-wide w-20">Qté</th>
+              <th class="text-right pb-2 font-bold text-slate-700 text-xs uppercase tracking-wide w-32">P.U. HT</th>
+              <th class="text-right pb-2 font-bold text-slate-700 text-xs uppercase tracking-wide w-16">TVA</th>
+              <th class="text-right pb-2 font-bold text-slate-700 text-xs uppercase tracking-wide w-32">Total HT</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (items().length > 0) {
+              @for (item of items(); track $index) {
+                <tr class="border-b border-slate-100">
+                  <td class="py-3 text-slate-800">{{ item.description }}</td>
+                  <td class="py-3 text-right text-slate-600">{{ item.quantity }}</td>
+                  <td class="py-3 text-right text-slate-600">{{ item.unitPrice | number:'1.0-0' }} {{ invoice()!.currency }}</td>
+                  <td class="py-3 text-right text-slate-500 text-xs">{{ item.taxRate }}%</td>
+                  <td class="py-3 text-right font-medium text-slate-800">
+                    {{ item.quantity * item.unitPrice | number:'1.0-0' }} {{ invoice()!.currency }}
+                  </td>
+                </tr>
+              }
+            } @else {
+              <!-- Lignes placeholder quand pas de détail items dans le summary -->
+              <tr class="border-b border-slate-100">
+                <td class="py-3 text-slate-600 italic" colspan="5">Détail des prestations</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <!-- Totals block -->
+        <div class="flex justify-end">
+          <div class="w-72">
+            <div class="flex justify-between py-1.5 text-sm text-slate-600 border-b border-slate-100">
+              <span>Sous-total HT</span>
+              <span class="font-medium">{{ totalHt() | number:'1.0-0' }} {{ invoice()!.currency }}</span>
+            </div>
+            <div class="flex justify-between py-1.5 text-sm text-slate-500 border-b border-slate-100">
+              <span>TVA</span>
+              <span>{{ tva() | number:'1.0-0' }} {{ invoice()!.currency }}</span>
+            </div>
+            <div class="flex justify-between py-2.5 text-base font-bold text-slate-800 border-b-2 border-slate-800">
+              <span>TOTAL TTC</span>
+              <span>{{ invoice()!.totalTtcAmount | number:'1.0-0' }} {{ invoice()!.currency }}</span>
+            </div>
+            @if (invoice()!.amountPaidAmount > 0) {
+              <div class="flex justify-between py-2 text-sm text-green-700 border-b border-green-200">
+                <span class="font-medium">Montant payé</span>
+                <span class="font-bold">{{ invoice()!.amountPaidAmount | number:'1.0-0' }} {{ invoice()!.currency }}</span>
+              </div>
+              <div class="flex justify-between py-2 text-sm font-bold"
+                   [class.text-red-600]="(invoice()!.totalTtcAmount - invoice()!.amountPaidAmount) > 0"
+                   [class.text-green-700]="(invoice()!.totalTtcAmount - invoice()!.amountPaidAmount) <= 0">
+                <span>Reste à payer</span>
+                <span>{{ (invoice()!.totalTtcAmount - invoice()!.amountPaidAmount) | number:'1.0-0' }} {{ invoice()!.currency }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ FOOTER ═══ -->
+      <div class="px-8 py-5 bg-slate-50 rounded-b-xl border-t border-slate-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Merci pour votre confiance</p>
+            <p class="text-xs text-slate-400 mt-0.5">FacturePro Africa — Gestion financière pour PME africaines</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-slate-400">Généré via FacturePro Africa</p>
+            <p class="font-mono text-[10px] text-slate-300 mt-0.5">{{ invoice()!.invoiceNumber }}</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+}

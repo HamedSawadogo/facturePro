@@ -1,28 +1,50 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { AuthService } from '../../auth/auth.service';
+import { NotificationStore } from '../../notifications/notification.store';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'fp-navbar',
   standalone: true,
-  template: `
-    <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
-      <div></div>
-      <div class="flex items-center gap-4">
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
-                     bg-blue-50 text-blue-700">
-          {{ auth.currentUser()?.role }}
-        </span>
-        <div class="h-8 w-8 rounded-full bg-blue-700 text-white flex items-center justify-center text-sm font-bold">
-          {{ initial }}
-        </div>
-      </div>
-    </header>
-  `,
+  imports: [DatePipe],
+  templateUrl: './navbar.html',
+  host: { class: 'block flex-shrink-0' },
 })
 export class NavbarComponent {
   readonly auth = inject(AuthService);
+  readonly notifStore = inject(NotificationStore);
+  private readonly el = inject(ElementRef);
+
+  readonly unreadCount = this.notifStore.unreadCount;
+  readonly panelOpen = signal(false);
 
   get initial(): string {
     return this.auth.currentUser()?.fullName?.[0]?.toUpperCase() ?? '?';
+  }
+
+  togglePanel(): void {
+    this.panelOpen.update(v => !v);
+    if (this.panelOpen()) this.notifStore.markAllRead();
+  }
+
+  dismiss(id: string): void {
+    this.notifStore.remove(id);
+  }
+
+  typeIcon(type: string): string {
+    const icons: Record<string, string> = {
+      'invoice.created': '📄',
+      'invoice.sent': '📤',
+      'payment.received': '💰',
+    };
+    return icons[type] ?? '🔔';
+  }
+
+  /** Ferme le panel si le clic est en dehors du composant */
+  @HostListener('document:click', ['$event'])
+  onDocClick(event: Event): void {
+    if (!this.el.nativeElement.contains(event.target)) {
+      this.panelOpen.set(false);
+    }
   }
 }
