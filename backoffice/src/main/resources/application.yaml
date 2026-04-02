@@ -1,0 +1,95 @@
+spring:
+  application:
+    name: facturepro-backoffice
+
+  # ── Database ──────────────────────────────────────────────────────────────
+  datasource:
+    url: jdbc:postgresql://localhost:5432/facturepro
+    username: facturepro
+    password: facturepro_secret
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+
+  # ── JPA / Hibernate ───────────────────────────────────────────────────────
+  jpa:
+    hibernate:
+      ddl-auto: update          # Liquibase gère le schéma
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_batch_fetch_size: 25
+        jdbc:
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
+        format_sql: true
+    show-sql: false
+    open-in-view: false           # OSIV désactivé — best practice
+
+  # ── Liquibase ─────────────────────────────────────────────────────────────
+#  liquibase:
+#    change-log: classpath:db/changelog/db.changelog-master.yaml
+#    enabled: true
+
+  # ── Redis ─────────────────────────────────────────────────────────────────
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+
+  # ── Mail ──────────────────────────────────────────────────────────────────
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  # ── Async ─────────────────────────────────────────────────────────────────
+  task:
+    execution:
+      pool:
+        core-size: 4
+        max-size: 16
+        queue-capacity: 500
+      thread-name-prefix: facturepro-async-
+
+# ── Server ────────────────────────────────────────────────────────────────────
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# ── Actuator ──────────────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# ── Application custom properties ─────────────────────────────────────────────
+app:
+  jwt:
+    secret: "facturepro-super-secret-jwt-key-change-in-production-must-be-256bits"
+    expiration-ms: 86400000        # 24h
+    refresh-expiration-ms: 604800000  # 7 jours
+
+  cors:
+    allowed-origins:
+      - "http://localhost:4200"
+      - "http://localhost:4201"
+
+  pagination:
+    default-page-size: 20
+    max-page-size: 100
